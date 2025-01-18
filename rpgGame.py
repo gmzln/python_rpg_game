@@ -1,3 +1,5 @@
+import time
+
 inventory = []
 
 rooms = {
@@ -7,7 +9,7 @@ rooms = {
         'item' : 'key',
     },
     'Kitchen' : {
-        # 'north' : 'Hall', ungenutzte Code Zeile, da spieler vorher stirbt und somit keine Himmelsrichtung mehr angeben kann
+        'north' : 'Hall',
         'item' : 'monster',
     },
     'Dining Room' : { 'west' : 'Hall',
@@ -80,24 +82,39 @@ while True:
                 currentRoom = rooms[currentRoom][move[1]]
             else:
                 print('You can\'t go that way!')
+    # picking up items
     if move[0] == 'get':
             if 'item' in rooms[currentRoom] and move[1] in rooms[currentRoom]['item']:
                 inventory += [move[1]]
                 print(move[1] + ' got!')
                 del rooms[currentRoom]['item']
             else:
-                print('Cant get ' + move[1] + '!')
+                print('Can\'t get ' + move[1] + '!')
+    # defeat the monster
     if move[0] == 'throw':
-            if 'item' in rooms[currentRoom] and 'monster' in rooms[currentRoom]['item'] and 'potion' in inventory:
-                inventory.remove('potion')
-                print('You threw the potion! The monster is defeated!')
-                del rooms[currentRoom]['item']
+            if 'item' in rooms[currentRoom] and rooms[currentRoom]['item'] == 'monster':
+                if 'potion' in inventory:
+                    print('A monster is here! You have 10 seconds to throw the potion!')
+                    start_time = time.time()
+                    while time.time() - start_time < 10:
+                        move = input('> ').lower().split()
+                        if move[0] == 'throw' and move[1] == 'potion':
+                            inventory.remove('potion')
+                            print('You threw the potion! The monster is defeated!')
+                            del rooms[currentRoom]['item']
+                            break
+                        else:
+                            print('You ran out of time! The monster got you... GAME OVER!')
+                            break   
             else:
-                print('You can\'t throw the potion! Either there\'s no monster or you don\'t have a potion.')
-    if 'item' in rooms[currentRoom] and 'monster' and not 'potion' in rooms[currentRoom]['item']:
+                print('A monster has got you... GAME OVER!')
+                break
+    if 'item' in rooms[currentRoom] and 'monster' in rooms[currentRoom]['item']:
          print('A monster has got you... GAME OVER!')
          break
-    if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or (currentRoom == 'Laboratory' and 'BookOfLife' in inventory and 'Beam-O-Mat') in inventory:
+    # winning logic
+    if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or \
+        (currentRoom == 'Laboratory' and 'BookOfLife' in inventory and 'Beam-O-Mat') in inventory:
          print('You escaped the house... YOU WIN!')
          break
     if move[0] == 'exit':
