@@ -1,4 +1,5 @@
-import time
+import threading
+import sys
 
 inventory = []
 
@@ -21,7 +22,7 @@ rooms = {
     'Library' : { 'east' : 'Office',
                  'west' : 'Dining Rooon',
                  'north' : 'Laboratory',
-                 'item' : 'BookOfLife'
+                 'item' : 'bookoflife'
                  },
     'Office' : { 'east' : 'Laboratory',
                 'west' : 'Library',
@@ -29,7 +30,7 @@ rooms = {
                 },
     'Laboratory' : {'south': 'Library',
                     'west' : 'Office',
-                    'item' : 'Beam-O-Mat'
+                    'item' : 'beamomat'
                     },
 }
 
@@ -82,39 +83,46 @@ while True:
             currentRoom = rooms[currentRoom][move[1]]
         else:
             print('You can\'t go that way!')
+
     # picking up items
-    if move[0] == 'get':
-        if 'item' in rooms[currentRoom] and move[1] == rooms[currentRoom]['item']:
-            inventory.append(rooms[currentRoom]['item'])
-            print(f'{rooms[currentRoom]["item"]} got!')
+    if move[0] == 'get' :
+        if 'item' in rooms[currentRoom] and move[1] in rooms[currentRoom]['item']:
+            inventory += [move[1]]
+            print(move[1] + ' got!')
             del rooms[currentRoom]['item']
         else:
-            print('Can\'t get {move[1]}!')
+            print('Can\'t get ' + move[1] + '!')
 
-    # defeat the monster
+   # defeat the monster
     if 'item' in rooms[currentRoom] and rooms[currentRoom]['item'] == 'monster':
         if 'potion' in inventory:
             print('A monster is here! You have 10 seconds to throw the potion!')
-            start_time = time.time()
-            success = False
-            while time.time() - start_time < 10:
-                move = input('> ').lower().split()
-                if move[0] == 'throw' and move[1] == 'potion':
-                    inventory.remove('potion')
-                    print('You threw the potion! The monster is defeated!')
-                    del rooms[currentRoom]['item']
-                    success = True
-                    break
-            if not success:
+
+            def time_out():
                 print('You ran out of time! The monster got you... GAME OVER!')
-                break
+                sys.exit()
+
+            timer = threading.Timer(10, time_out)
+            timer.start()
+
+            move = input('> ').lower().split()
+
+            if len(move) == 2 and move[0] == 'throw' and move[1] == 'potion':
+                inventory.remove('potion' )
+                print('You threw the potion! The monster is defeated!')
+                del rooms[currentRoom]['item']
+                timer.cancel()
+            else:
+                timer.cancel()
+                print('You ran out of time! The monster got you... GAME OVER!')
+                sys.exit()
         else:
             print('A monster has got you... GAME OVER!')
-            break
+            sys.exit()
 
     # winning condition
     if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or \
-        (currentRoom == 'Laboratory' and 'BookOfLife' in inventory and 'Beam-O-Mat') in inventory:
+        (currentRoom == 'Laboratory' and 'bookoflife' in inventory and 'beamomat') in inventory:
          print('You escaped the house... YOU WIN!')
          break
     if move[0] == 'exit':
