@@ -99,8 +99,9 @@ while True:
             print('A monster is here! You have 10 seconds to throw the potion!')
 
             def time_out():
+                timer.cancel()
                 print('You ran out of time! The monster got you... GAME OVER!')
-                sys.exit()
+                quit()
 
             timer = threading.Timer(10, time_out)
             timer.start()
@@ -116,11 +117,9 @@ while True:
                     timer.cancel()
                 else:
                     print('invalid input. Try again!')
-
-            timer.cancel()
         else:
             print('A monster has got you... GAME OVER!')
-            sys.exit()
+            quit()
 
     # winning condition
     if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or \
