@@ -20,7 +20,7 @@ rooms = {
                      },
     'Garden' : { 'north' : 'Dining Room'},
     'Library' : { 'east' : 'Office',
-                 'west' : 'Dining Rooon',
+                 'west' : 'Dining Room',
                  'north' : 'Laboratory',
                  'item' : 'bookoflife'
                  },
@@ -105,17 +105,19 @@ while True:
             timer = threading.Timer(10, time_out)
             timer.start()
 
-            move = input('> ').lower().split()
+            success = False
+            while not success:
+                move = input('> ').lower().split()
+                if len(move) == 2 and move[0] == 'throw' and move[1] == 'potion':
+                    inventory.remove('potion' )
+                    print('You threw the potion! The monster is defeated!')
+                    del rooms[currentRoom]['item']
+                    success = True
+                    timer.cancel()
+                else:
+                    print('invalid input. Try again!')
 
-            if len(move) == 2 and move[0] == 'throw' and move[1] == 'potion':
-                inventory.remove('potion' )
-                print('You threw the potion! The monster is defeated!')
-                del rooms[currentRoom]['item']
-                timer.cancel()
-            else:
-                timer.cancel()
-                print('You ran out of time! The monster got you... GAME OVER!')
-                sys.exit()
+            timer.cancel()
         else:
             print('A monster has got you... GAME OVER!')
             sys.exit()
