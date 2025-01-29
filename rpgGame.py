@@ -1,5 +1,5 @@
 import threading
-import sys
+import timer
 
 inventory = []
 
@@ -99,9 +99,10 @@ while True:
             print('A monster is here! You have 10 seconds to throw the potion!')
 
             def time_out():
-                timer.cancel()
+                global success
                 print('You ran out of time! The monster got you... GAME OVER!')
-                quit()
+                success = True
+                timer.cancel()
 
             timer = threading.Timer(10, time_out)
             timer.start()
@@ -113,13 +114,17 @@ while True:
                     inventory.remove('potion' )
                     print('You threw the potion! The monster is defeated!')
                     del rooms[currentRoom]['item']
-                    success = True
                     timer.cancel()
+                    success = True
                 else:
                     print('invalid input. Try again!')
+        if success == True:
+            print('You couldn\'t defeat yourself... GAME OVER!')
+            timer.cancel()
+            break
         else:
-            print('A monster has got you... GAME OVER!')
-            quit()
+            print('A monster has got you... GAME OVER! Come back next time with the potion!')
+            break
 
     # winning condition
     if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or \
