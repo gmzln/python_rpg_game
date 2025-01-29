@@ -1,5 +1,4 @@
-import threading
-import timer
+from timer import start_timer
 
 inventory = []
 
@@ -98,17 +97,14 @@ while True:
         if 'potion' in inventory:
             print('A monster is here! You have 10 seconds to throw the potion!')
 
-            def time_out():
-                global success
-                print('You ran out of time! The monster got you... GAME OVER!')
-                success = True
-                timer.cancel()
-
-            timer = threading.Timer(10, time_out)
-            timer.start()
+            timer, event = start_timer(10)
 
             success = False
             while not success:
+                if event.is_set():
+                    print('You ran out of time! The monster got you... GAME OVER!')
+                    break
+
                 move = input('> ').lower().split()
                 if len(move) == 2 and move[0] == 'throw' and move[1] == 'potion':
                     inventory.remove('potion' )
@@ -118,10 +114,7 @@ while True:
                     success = True
                 else:
                     print('invalid input. Try again!')
-        if success == True:
-            print('You couldn\'t defeat yourself... GAME OVER!')
             timer.cancel()
-            break
         else:
             print('A monster has got you... GAME OVER! Come back next time with the potion!')
             break
