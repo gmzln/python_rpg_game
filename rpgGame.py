@@ -1,6 +1,9 @@
 from timer import start_timer
+import threading
 
 inventory = []
+stop_input = False 
+monster_is_defeated = False
 
 rooms = {
     'Hall' : {
@@ -57,6 +60,7 @@ def showInstructions():
 
 def showStatus():
     #print the players current status
+    print('--------------------------------')
     print('Current status')
     print('--------------------------------')
     print('You are in the ' + currentRoom)
@@ -67,8 +71,27 @@ def showStatus():
         print('You see a ' + rooms[currentRoom]['item'])
     print('--------------------------------')
 
+# defeating the monster
+def get_user_input():
+    global stop_input, monster_is_defeated
+    while not monster_is_defeated and stop_input is False:
+        move = input('> ').lower().split()
+        if move[0] == 'throw' and move[1] == 'potion':
+            inventory.remove('potion')
+            print('You threw the potion! The monster is defeated!')
+            del rooms[currentRoom]['item']
+            timer.cancel()
+            monster_is_defeated = True
+        else: 
+            print('invalid input. Try again!')
+        if stop_input is True:
+            print('Type [exit] to play again ')
+            break
+    else:
+        exit()
 
 showInstructions()
+
 while True:
     showStatus()
     move = ''
@@ -98,23 +121,17 @@ while True:
             print('A monster is here! You have 10 seconds to throw the potion!')
 
             timer, event = start_timer(10)
+            input_thread = threading.Thread(target=get_user_input, args=(event,))
+            input_thread.start()
 
-            success = False
-            while not success:
-                if event.is_set():
-                    print('You ran out of time! The monster got you... GAME OVER!')
-                    break
+            timer.join()
 
-                move = input('> ').lower().split()
-                if len(move) == 2 and move[0] == 'throw' and move[1] == 'potion':
-                    inventory.remove('potion' )
-                    print('You threw the potion! The monster is defeated!')
-                    del rooms[currentRoom]['item']
-                    timer.cancel()
-                    success = True
-                else:
-                    print('invalid input. Try again!')
-            timer.cancel()
+            # input thread && time thread
+            if event.is_set() and monster_is_defeated is False:
+                print('You ran out of time! The monster got you... GAME OVER!')
+                stop_input = True
+                timer.cancel()
+                break
         else:
             print('A monster has got you... GAME OVER! Come back next time with the potion!')
             break
