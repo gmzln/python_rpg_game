@@ -1,4 +1,5 @@
 from timer import start_timer
+from displayText import show_game_over, show_game_win, show_monster_is_defeated
 import threading
 
 inventory = []
@@ -72,23 +73,22 @@ def showStatus():
     print('--------------------------------')
 
 # defeating the monster
-def get_user_input():
+def get_user_input(event):
     global stop_input, monster_is_defeated
-    while not monster_is_defeated and stop_input is False:
-        move = input('> ').lower().split()
-        if move[0] == 'throw' and move[1] == 'potion':
-            inventory.remove('potion')
-            print('You threw the potion! The monster is defeated!')
-            del rooms[currentRoom]['item']
-            timer.cancel()
-            monster_is_defeated = True
-        else: 
-            print('invalid input. Try again!')
-        if stop_input is True:
-            print('Type [exit] to play again ')
-            break
-    else:
-        exit()
+    while not stop_input and not monster_is_defeated:
+            move = input('> ').lower().split()
+            if move[0] == 'throw' and move[1] == 'potion':
+                inventory.remove('potion')
+                show_monster_is_defeated()
+                del rooms[currentRoom]['item']
+                timer.cancel()
+                monster_is_defeated = True
+            elif timer.is_alive():
+                    print('invalid input. Try again!')
+            else:
+                print('Donn\'t be sad. You can try again!')
+                return
+    return
 
 showInstructions()
 
@@ -128,18 +128,20 @@ while True:
 
             # input thread && time thread
             if event.is_set() and monster_is_defeated is False:
-                print('You ran out of time! The monster got you... GAME OVER!')
+                show_game_over()
+                print('You ran out of time! Type [exit]')
                 stop_input = True
                 timer.cancel()
                 break
         else:
+            show_game_over
             print('A monster has got you... GAME OVER! Come back next time with the potion!')
             break
 
     # winning condition
     if (currentRoom == 'Garden' and 'key' in inventory and 'potion') or \
         (currentRoom == 'Laboratory' and 'bookoflife' in inventory and 'beamomat') in inventory:
-         print('You escaped the house... YOU WIN!')
+         show_game_win()
          break
     if move[0] == 'exit':
          break
