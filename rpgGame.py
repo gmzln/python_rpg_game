@@ -134,7 +134,7 @@ while True:
                 timer.cancel()
                 break
         else:
-            show_game_over
+            show_game_over()
             print('A monster has got you... GAME OVER! Come back next time with the potion!')
             break
 
